@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DREEMZ: Sky Signal V7</title>
+    <title>DREEMZ: Sky Signal V8</title>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         #noise { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; pointer-events: none; }
@@ -15,13 +15,14 @@
         .lock-notice { font-size: 1.2em; color: #0ff; text-shadow: 0 0 15px #0ff; display: none; font-weight: bold; }
         #instruction { position: absolute; bottom: 80px; width: 100%; font-size: 0.9em; color: #666; animation: pulse 2s infinite; display: none; }
         @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        #version { position: absolute; bottom: 10px; right: 10px; font-size: 8px; color: #222; }
     </style>
 </head>
 <body>
     <canvas id="noise"></canvas>
     
     <div id="setup">
-        <button id="btn">ПОЙМАТЬ СИГНАЛ С НЕБЕС</button>
+        <button id="btn">ПОЙМАТЬ СИГНАЛ (V8)</button>
     </div>
 
     <div id="portal" class="ellipse" style="display:none">
@@ -32,7 +33,8 @@
     
     <div id="instruction">ИСКАЖЕНИЕ РЕАЛЬНОСТИ...</div>
 
-    <div class="debug-box" id="dbg">SENSOR: STANDBY</div>
+    <div class="debug-box" id="dbg">V8: READY</div>
+    <div id="version">PROTO V8.0.1 - TARGET 140</div>
 
     <script>
         const canvas = document.getElementById('noise');
@@ -65,13 +67,14 @@
         drawNoise();
 
         function updateSignal(beta) {
-            const absBeta = Math.abs(beta);
-            const target = 140; // New target from Slava
-            const diff = Math.abs(absBeta - target);
+            const currentAngle = Math.abs(Math.round(beta));
+            const targetAngle = 140; // HARD TARGET
+            const threshold = 15;
+            const diff = Math.abs(currentAngle - targetAngle);
             
-            dbg.innerHTML = `ANGLE: ${Math.round(absBeta)}°<br>TARGET: 140° (±15°)`;
+            dbg.innerHTML = `ANGLE: ${currentAngle}°<br>TARGET: ${targetAngle}° (±${threshold}°)`;
 
-            if (diff < 15) {
+            if (diff <= threshold) {
                 portal.classList.add('active');
                 label.style.display = 'block';
                 statusText.innerText = 'СИГНАЛ С НЕБЕС ПОЙМАН';
@@ -85,8 +88,8 @@
                 statusText.style.color = '#444';
                 canvas.style.opacity = 0.3;
                 instr.style.display = 'block';
-                if (absBeta < 125) instr.innerText = "ПОДНИМАЙ ВЫШЕ...";
-                else if (absBeta > 155) instr.innerText = "ОПУСТИ НЕМНОГО...";
+                if (currentAngle < targetAngle - threshold) instr.innerText = "ПОДНИМАЙ ВЫШЕ...";
+                else if (currentAngle > targetAngle + threshold) instr.innerText = "ОПУСТИ НЕМНОГО...";
             }
         }
 
@@ -117,7 +120,7 @@
                 });
             }
             
-            // Touch fallback
+            // Touch fallback (mapped to 0-180 range)
             window.addEventListener('touchmove', (e) => {
                 let val = (1 - (e.touches[0].clientY / window.innerHeight)) * 180;
                 updateSignal(val);
