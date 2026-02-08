@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DREEMZ: Sky Signal V6</title>
+    <title>DREEMZ: Sky Signal V7</title>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         #noise { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; pointer-events: none; }
@@ -28,7 +28,7 @@
         <div id="lock-label" class="label lock-notice">SKY SIGNAL LOCKED</div>
     </div>
 
-    <div class="status" id="status-text" style="display:none">ПОДНИМАЙТЕ ТЕЛЕФОН ВЫШЕ</div>
+    <div class="status" id="status-text" style="display:none">НАПРАВЬТЕ ТЕЛЕФОН В НЕБО</div>
     
     <div id="instruction">ИСКАЖЕНИЕ РЕАЛЬНОСТИ...</div>
 
@@ -65,18 +65,13 @@
         drawNoise();
 
         function updateSignal(beta) {
-            // Beta is tilt (0 flat, 90 vertical). 
-            // User wants ~60 degrees UP towards sky.
-            // If vertical is 90, tilting top back 60 degrees makes beta ~30.
-            // If flat is 0, tilting top up 60 degrees makes beta ~60.
-            // Let's target a range around 60 degrees absolute tilt.
             const absBeta = Math.abs(beta);
-            const target = 60;
+            const target = 140; // New target from Slava
             const diff = Math.abs(absBeta - target);
             
-            dbg.innerHTML = `ANGLE: ${Math.round(absBeta)}°<br>TARGET: 60° (±10°)`;
+            dbg.innerHTML = `ANGLE: ${Math.round(absBeta)}°<br>TARGET: 140° (±15°)`;
 
-            if (diff < 10) {
+            if (diff < 15) {
                 portal.classList.add('active');
                 label.style.display = 'block';
                 statusText.innerText = 'СИГНАЛ С НЕБЕС ПОЙМАН';
@@ -86,12 +81,12 @@
             } else {
                 portal.classList.remove('active');
                 label.style.display = 'none';
-                statusText.innerText = 'НАПРАВЬТЕ В НЕБО (ПОД 60°)';
+                statusText.innerText = 'НАПРАВЬТЕ В НЕБО';
                 statusText.style.color = '#444';
                 canvas.style.opacity = 0.3;
                 instr.style.display = 'block';
-                if (absBeta < 50) instr.innerText = "ПОДНИМАЙ ВЫШЕ...";
-                else if (absBeta > 70) instr.innerText = "ОПУСТИ НЕМНОГО...";
+                if (absBeta < 125) instr.innerText = "ПОДНИМАЙ ВЫШЕ...";
+                else if (absBeta > 155) instr.innerText = "ОПУСТИ НЕМНОГО...";
             }
         }
 
@@ -124,7 +119,7 @@
             
             // Touch fallback
             window.addEventListener('touchmove', (e) => {
-                let val = (1 - (e.touches[0].clientY / window.innerHeight)) * 90;
+                let val = (1 - (e.touches[0].clientY / window.innerHeight)) * 180;
                 updateSignal(val);
             });
         }
