@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DREEMZ: Heaven Signal V5</title>
+    <title>DREEMZ: Sky Signal V6</title>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         #noise { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; pointer-events: none; }
-        .ellipse { width: 220px; height: 350px; border: 2px solid #222; border-radius: 110px / 175px; display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(50px); opacity: 0.5; }
-        .active { border-color: #0ff; box-shadow: 0 0 50px #0ff; transform: translateY(0) scale(1.1); opacity: 1; }
-        .status { margin-top: 40px; font-size: 0.7em; letter-spacing: 4px; text-transform: uppercase; color: #333; padding: 0 20px; }
+        .ellipse { width: 220px; height: 350px; border: 2px solid #222; border-radius: 110px / 175px; display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .active { border-color: #0ff; box-shadow: 0 0 50px #0ff; transform: scale(1.1); opacity: 1; }
+        .status { margin-top: 40px; font-size: 0.7em; letter-spacing: 4px; text-transform: uppercase; color: #333; padding: 0 20px; z-index: 5; }
         #btn { padding: 18px 40px; background: #0ff; color: #000; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; z-index: 10; box-shadow: 0 0 20px rgba(0,255,255,0.3); }
-        .debug-box { position: absolute; top: 10px; left: 10px; text-align: left; font-size: 10px; color: #444; font-family: monospace; }
+        .debug-box { position: absolute; top: 10px; left: 10px; text-align: left; font-size: 10px; color: #0ff; font-family: monospace; z-index: 100; background: rgba(0,0,0,0.5); padding: 5px; }
         .lock-notice { font-size: 1.2em; color: #0ff; text-shadow: 0 0 15px #0ff; display: none; font-weight: bold; }
-        #instruction { position: absolute; bottom: 100px; width: 100%; font-size: 0.9em; color: #666; animation: pulse 2s infinite; display: none; }
+        #instruction { position: absolute; bottom: 80px; width: 100%; font-size: 0.9em; color: #666; animation: pulse 2s infinite; display: none; }
         @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
     </style>
 </head>
@@ -25,14 +25,14 @@
     </div>
 
     <div id="portal" class="ellipse" style="display:none">
-        <div id="lock-label" class="lock-notice">HEAVEN SIGNAL LOCKED</div>
+        <div id="lock-label" class="label lock-notice">SKY SIGNAL LOCKED</div>
     </div>
 
-    <div class="status" id="status-text" style="display:none">ПОДНИМИТЕ ТЕЛЕФОН К НЕБУ</div>
+    <div class="status" id="status-text" style="display:none">ПОДНИМАЙТЕ ТЕЛЕФОН ВЫШЕ</div>
     
-    <div id="instruction">ПОДНИМАЙ ВЫШЕ...</div>
+    <div id="instruction">ИСКАЖЕНИЕ РЕАЛЬНОСТИ...</div>
 
-    <div class="debug-box" id="dbg">SENSOR STATUS: WAITING...</div>
+    <div class="debug-box" id="dbg">SENSOR: STANDBY</div>
 
     <script>
         const canvas = document.getElementById('noise');
@@ -65,14 +65,18 @@
         drawNoise();
 
         function updateSignal(beta) {
-            // beta is front-to-back tilt. 0 is flat, -90 is vertical pointing up.
-            // Target: raised to the sky (beta between -60 and -110)
-            const target = -85;
-            const diff = Math.abs(beta - target);
+            // Beta is tilt (0 flat, 90 vertical). 
+            // User wants ~60 degrees UP towards sky.
+            // If vertical is 90, tilting top back 60 degrees makes beta ~30.
+            // If flat is 0, tilting top up 60 degrees makes beta ~60.
+            // Let's target a range around 60 degrees absolute tilt.
+            const absBeta = Math.abs(beta);
+            const target = 60;
+            const diff = Math.abs(absBeta - target);
             
-            dbg.innerText = `SKY ANGLE: ${Math.round(beta)}° | DIFF: ${Math.round(diff)}`;
+            dbg.innerHTML = `ANGLE: ${Math.round(absBeta)}°<br>TARGET: 60° (±10°)`;
 
-            if (diff < 20) {
+            if (diff < 10) {
                 portal.classList.add('active');
                 label.style.display = 'block';
                 statusText.innerText = 'СИГНАЛ С НЕБЕС ПОЙМАН';
@@ -82,12 +86,12 @@
             } else {
                 portal.classList.remove('active');
                 label.style.display = 'none';
-                statusText.innerText = 'ПОДНИМИТЕ ТЕЛЕФОН К НЕБУ';
+                statusText.innerText = 'НАПРАВЬТЕ В НЕБО (ПОД 60°)';
                 statusText.style.color = '#444';
                 canvas.style.opacity = 0.3;
                 instr.style.display = 'block';
-                if (beta > -30) instr.innerText = "ПОДНИМАЙ ВЫШЕ...";
-                else if (beta < -120) instr.innerText = "ОПУСТИ НЕМНОГО...";
+                if (absBeta < 50) instr.innerText = "ПОДНИМАЙ ВЫШЕ...";
+                else if (absBeta > 70) instr.innerText = "ОПУСТИ НЕМНОГО...";
             }
         }
 
@@ -102,7 +106,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                startApp('touch'); // Fallback
+                startApp('touch');
             }
         };
 
@@ -116,13 +120,13 @@
                 window.addEventListener('deviceorientation', (e) => {
                     updateSignal(e.beta);
                 });
-            } else {
-                // Touch fallback: slide from bottom to top
-                window.addEventListener('touchmove', (e) => {
-                    let val = (e.touches[0].clientY / window.innerHeight) * -180 + 90;
-                    updateSignal(val);
-                });
             }
+            
+            // Touch fallback
+            window.addEventListener('touchmove', (e) => {
+                let val = (1 - (e.touches[0].clientY / window.innerHeight)) * 90;
+                updateSignal(val);
+            });
         }
     </script>
 </body>
