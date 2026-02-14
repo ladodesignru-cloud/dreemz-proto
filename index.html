@@ -7,7 +7,9 @@
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         #noise { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; pointer-events: none; }
-        .ellipse { width: 220px; height: 350px; border: 2px solid #222; border-radius: 110px / 175px; display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .ellipse { width: 220px; height: 350px; border: 2px solid #222; border-radius: 110px / 175px; display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; }
+        .ellipse video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
+        .active video { opacity: 0.6; }
         .active { border-color: #0ff; box-shadow: 0 0 50px #0ff; transform: scale(1.1); opacity: 1; }
         .status { margin-top: 40px; font-size: 0.7em; letter-spacing: 4px; text-transform: uppercase; color: #333; padding: 0 20px; z-index: 5; }
         #btn { padding: 18px 40px; background: #0ff; color: #000; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; z-index: 10; box-shadow: 0 0 20px rgba(0,255,255,0.3); }
@@ -26,6 +28,7 @@
     </div>
 
     <div id="portal" class="ellipse" style="display:none">
+        <video id="signal-video" src="signal_video.mp4" loop muted playsinline></video>
         <div id="lock-label" class="label lock-notice">SKY SIGNAL LOCKED</div>
     </div>
 
@@ -40,6 +43,7 @@
         const canvas = document.getElementById('noise');
         const ctx = canvas.getContext('2d');
         const portal = document.getElementById('portal');
+        const video = document.getElementById('signal-video');
         const label = document.getElementById('lock-label');
         const statusText = document.getElementById('status-text');
         const btn = document.getElementById('btn');
@@ -76,6 +80,7 @@
 
             if (diff <= threshold) {
                 portal.classList.add('active');
+                if (video.paused) video.play();
                 label.style.display = 'block';
                 statusText.innerText = 'СИГНАЛ С НЕБЕС ПОЙМАН';
                 statusText.style.color = '#0ff';
@@ -83,6 +88,7 @@
                 instr.style.display = 'none';
             } else {
                 portal.classList.remove('active');
+                if (!video.paused) video.pause();
                 label.style.display = 'none';
                 statusText.innerText = 'НАПРАВЬТЕ В НЕБО';
                 statusText.style.color = '#444';
